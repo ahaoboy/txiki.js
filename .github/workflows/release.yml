@@ -1,0 +1,102 @@
+name: Releases
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          path-type: inherit
+          install: >-
+            git
+            curl
+            make
+            cmake
+
+      - shell: msys2 {0}
+        run: |
+          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-gcc mingw-w64-x86_64-curl libcurl openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
+          make
+
+          mkdir ./txiki-windows
+          cp ./build/tjs.exe ./txiki-windows/tjs.exe
+          cp ./build/tjs.a ./txiki-windows/tjs.a
+          cp ./build/tjs.dll ./txiki-windows/tjs.dll
+          cp ./build/tjs.dll.a ./txiki-windows/tjs.dll.a
+
+      - name: Upload windows Artifact ext
+        uses: actions/upload-artifact@v4
+        with:
+          name: txiki-dist-windows
+          path: ./txiki-windows
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: build macos-latest
+        run: |
+          brew install cmake autoconf automake libtool texinfo
+          make
+
+          mkdir ./txiki-macos
+          cp ./build/tjs ./txiki-macos/tjs
+          cp ./build/libtjs.a ./txiki-macos/libtjs.a
+
+      - name: Upload macos Artifact ext
+        uses: actions/upload-artifact@v4
+        with:
+          name: txiki-dist-macos
+          path: ./txiki-macos
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: build ubuntu-latest
+        run: |
+          sudo apt install libcurl4-openssl-dev build-essential cmake autoconf texinfo libtool -y
+          make
+
+          mkdir ./txiki-linux
+          cp ./build/tjs ./txiki-linux/tjs
+          cp ./build/libtjs.a ./txiki-linux/libtjs.a
+
+      - name: Upload ubuntu Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: txiki-dist-linux
+          path: ./txiki-linux
+
+  release:
+    needs: [build-windows, build-macos, build-ubuntu]
+    name: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: txiki-build
+          pattern: txiki-dist-*
+          merge-multiple: true
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "txiki-build/*"
