@@ -3,7 +3,7 @@ name: Releases
 on:
   push:
     tags:
-      - "v*"
+      - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   build-ext-windows:
@@ -12,6 +12,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: msys2/setup-msys2@v2
       - shell: msys2 {0}
         run: |
@@ -34,7 +36,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          submodules: true
       - name: build macos-latest
         run: |
           git submodule update --init
@@ -52,6 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: build ubuntu-latest
         run: |
