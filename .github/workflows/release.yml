@@ -1,0 +1,105 @@
+name: Releases
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          path-type: inherit
+          install: >-
+            curl
+            make
+            cmake
+
+      - shell: msys2 {0}
+        run: |
+          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-curl libcurl openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
+          make
+
+          mkdir ./txiki-windows-x86
+          cp ./build/tjs.exe ./txiki-windows-x86/tjs.exe
+          cp ./build/libtjs.a ./txiki-windows-x86/libtjs.a
+          cd ./txiki-windows-x86
+          ldd ./tjs.exe | grep '=>' | awk '{print $3}' | xargs -I '{}' cp -v '{}' .
+
+      - name: Upload windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: txiki-windows-x86
+          path: ./txiki-windows-x86
+
+  build-macos-arm64:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: build macos-latest
+        run: |
+          brew install cmake autoconf automake libtool texinfo
+          make
+
+          mkdir ./txiki-macos-arm64
+          cp ./build/tjs ./txiki-macos-arm64/tjs
+          cp ./build/libtjs.a ./txiki-macos-arm64/libtjs.a
+
+      - name: Upload macos arm64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: txiki-macos-arm64
+          path: ./txiki-macos-arm64
+
+  build-macos-x86:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: build macos-latest
+        run: |
+          brew install cmake autoconf automake libtool texinfo
+          make
+
+          mkdir ./txiki-macos-x86
+          cp ./build/tjs ./txiki-macos-x86/tjs
+          cp ./build/libtjs.a ./txiki-macos-x86/libtjs.a
+
+      - name: Upload macos x86 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: txiki-macos-x86
+          path: ./txiki-macos-x86
+
+  release:
+    needs: [build-windows, build-macos-x86, build-macos-arm64]
+    name: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: txiki-*
+          merge-multiple: false
+
+      - name: compress
+        run: |
+          cd ./dist
+          for dir in */; do zip -r "${dir%/}.zip" "$dir"; done
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/*.zip"
