@@ -15,10 +15,20 @@ jobs:
         with:
           submodules: true
       - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          path-type: inherit
+          install: >-
+            git
+            curl
+
       - shell: msys2 {0}
         run: |
-          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-gcc mingw-w64-x86_64-curl curl libcurl openssl-devel libcurl-devel mingw-w64-x86_64-cmake autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
-          make
+          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-gcc mingw-w64-x86_64-curl --noconfirm
+          pacman -S curl libcurl openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
+
+          which make
+          /usr/bin/make
 
       - name: Upload windows Artifact ext
         uses: actions/upload-artifact@v4
