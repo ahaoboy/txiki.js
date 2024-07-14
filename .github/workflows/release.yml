@@ -17,18 +17,17 @@ jobs:
       - uses: msys2/setup-msys2@v2
       - shell: msys2 {0}
         run: |
-          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-curl curl libcurl openssl-devel libcurl-devel mingw-w64-x86_64-cmake autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
+          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-gcc mingw-w64-x86_64-curl curl libcurl openssl-devel libcurl-devel mingw-w64-x86_64-cmake autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
 
 
       - name: build
         run: |
-          git submodule update --init
           make
       - name: Upload windows Artifact ext
         uses: actions/upload-artifact@v4
         with:
           name: txiki-windows
-          path: ./build/*.a, ./build/*.dll
+          path: ./build/tjs.exe
 
   build-ext-macos:
     runs-on: macos-latest
@@ -38,7 +37,6 @@ jobs:
           submodules: true
       - name: build macos-latest
         run: |
-          git submodule update --init
           brew install cmake autoconf automake libtool texinfo
           make
 
@@ -46,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: txiki-macos
-          path: ./build/*.a, ./build/*.dll
+          path: ./build/tjs
 
   build-ext-ubuntu:
     runs-on: ubuntu-latest
@@ -57,15 +55,14 @@ jobs:
 
       - name: build ubuntu-latest
         run: |
-          git submodule update --init
-          sudo apt install libcurl4-openssl-dev build-essential cmake autoconf texinfo libtool
+          sudo apt install libcurl4-openssl-dev build-essential cmake autoconf texinfo libtool -y
           make
 
       - name: Upload ubuntu Artifact
         uses: actions/upload-artifact@v4
         with:
           name: txiki-linux
-          path: ./build/*.a, ./build/*.dll
+          path: ./build/tjs
 
   release:
     needs: [build-ext-windows, build-ext-macos, build-ext-ubuntu]
@@ -74,8 +71,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-
       - uses: actions/download-artifact@v4
         with:
           path: txiki-build
