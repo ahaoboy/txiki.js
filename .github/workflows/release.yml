@@ -26,7 +26,7 @@ jobs:
 
       - shell: msys2 {0}
         run: |
-          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-gcc mingw-w64-x86_64-curl libcurl openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
+          pacman -S mingw-w64-x86_64-gcc openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
           make
 
           mkdir ./txiki-windows
@@ -93,7 +93,7 @@ jobs:
         with:
           path: txiki-build
           pattern: txiki-dist-*
-          merge-multiple: true
+          merge-multiple: false
 
       - uses: ncipollo/release-action@v1
         with:
