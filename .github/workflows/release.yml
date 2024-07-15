@@ -21,6 +21,8 @@ jobs:
           install: >-
             git
             curl
+            make
+            cmake
 
       - shell: msys2 {0}
         run: |
@@ -28,7 +30,7 @@ jobs:
           pacman -S curl libcurl openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
 
           which make
-          /usr/bin/make
+          /c/mingw64/bin/make
 
       - name: Upload windows Artifact ext
         uses: actions/upload-artifact@v4
