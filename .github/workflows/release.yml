@@ -31,9 +31,7 @@ jobs:
 
           mkdir ./txiki-windows
           cp ./build/tjs.exe ./txiki-windows/tjs.exe
-          cp ./build/tjs.a ./txiki-windows/tjs.a
-          cp ./build/tjs.dll ./txiki-windows/tjs.dll
-          cp ./build/tjs.dll.a ./txiki-windows/tjs.dll.a
+          cp ./build/libtjs.a ./txiki-windows/libtjs.a
 
       - name: Upload windows Artifact ext
         uses: actions/upload-artifact@v4
