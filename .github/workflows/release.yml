@@ -55,7 +55,7 @@ jobs:
           cp ./build/tjs ./txiki-macos-arm64/tjs
           cp ./build/libtjs.a ./txiki-macos-arm64/libtjs.a
           cd ./txiki-macos-arm64
-          ldd ./tjs.exe | grep '=>' | awk '{print $3}' | xargs -I '{}' cp -v '{}' .
+          ldd ./tjs | grep '=>' | awk '{print $3}' | xargs -I '{}' cp -v '{}' .
 
       - name: Upload macos arm64 Artifact
         uses: actions/upload-artifact@v4
@@ -78,7 +78,7 @@ jobs:
           cp ./build/tjs ./txiki-macos-x86/tjs
           cp ./build/libtjs.a ./txiki-macos-x86/libtjs.a
           cd ./txiki-macos-x86
-          ldd ./tjs.exe | grep '=>' | awk '{print $3}' | xargs -I '{}' cp -v '{}' .
+          ldd ./tjs | grep '=>' | awk '{print $3}' | xargs -I '{}' cp -v '{}' .
 
       - name: Upload macos x86 Artifact
         uses: actions/upload-artifact@v4
