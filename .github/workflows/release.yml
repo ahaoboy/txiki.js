@@ -53,6 +53,9 @@ jobs:
           brew install cmake autoconf automake libtool texinfo
           make BUILD_MACOS_MULTIARCH=1
 
+          ls -lh .
+          ls -lh build
+
           mkdir ./txiki-macos-arm64
           cp build/tjs ./txiki-macos-arm64/tjs
 
@@ -61,30 +64,6 @@ jobs:
         with:
           name: txiki-macos-arm64
           path: ./txiki-macos-arm64
-
-  build-macos-x86:
-    runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: build macos-latest
-        run: |
-          brew install cmake autoconf automake libtool texinfo
-          make
-
-          ls -lh .
-          ls -lh build
-
-
-          mkdir ./txiki-macos-x86
-          cp build/tjs ./txiki-macos-x86/tjs
-
-      - name: Upload macos x86 Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: txiki-macos-x86
-          path: ./txiki-macos-x86
 
   release:
     needs: [build-windows-x86_64, build-macos]
