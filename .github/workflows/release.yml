@@ -32,7 +32,7 @@ jobs:
           make
 
           mkdir ./txiki-windows-x86_64
-          cp ./build/tjs.exe ./txiki-windows-x86/tjs.exe
+          cp ./build/tjs.exe ./txiki-windows-x86_64/tjs.exe
           cd ./txiki-windows-x86_64
           ldd ./tjs.exe | grep -v '=> /c/Windows/.*' | awk '{print $3}' | xargs -I '{}' cp -v '{}' .
 
