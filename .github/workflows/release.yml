@@ -26,17 +26,21 @@ jobs:
 
       - shell: msys2 {0}
         run: |
-          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-gcc mingw-w64-x86_64-curl --noconfirm
-          pacman -S curl libcurl openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
+          pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-gcc mingw-w64-x86_64-curl libcurl openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
+          make
+          ls -l ./build
 
-          which make
-          /c/mingw64/bin/make
+          mkdir ./txiki-windows
+          cp ./build/tjs.exe ./txiki-windows/tjs.exe
+          cp ./build/tjs.a ./txiki-windows/tjs.a
+          cp ./build/tjs.dll ./txiki-windows/tjs.dll
+          cp ./build/tjs.dll.a ./txiki-windows/tjs.dll.a
 
       - name: Upload windows Artifact ext
         uses: actions/upload-artifact@v4
         with:
-          name: txiki-windows
-          path: ./build/tjs.exe
+          name: txiki-dist-windows
+          path: ./dist
 
   build-ext-macos:
     runs-on: macos-latest
@@ -49,11 +53,15 @@ jobs:
           brew install cmake autoconf automake libtool texinfo
           make
 
+          mkdir ./txiki-macos
+          ls -l ./build
+          cp ./build/tjs ./txiki-windows/tjs
+
       - name: Upload macos Artifact ext
         uses: actions/upload-artifact@v4
         with:
-          name: txiki-macos
-          path: ./build/tjs
+          name: txiki-dist-macos
+          path: ./txiki-macos
 
   build-ext-ubuntu:
     runs-on: ubuntu-latest
@@ -66,12 +74,15 @@ jobs:
         run: |
           sudo apt install libcurl4-openssl-dev build-essential cmake autoconf texinfo libtool -y
           make
+          ls -l ./build
+          mkdir ./txiki-linux
+          cp ./build/tjs ./txiki-linux/tjs
 
       - name: Upload ubuntu Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: txiki-linux
-          path: ./build/tjs
+          name: txiki-dist-linux
+          path: ./txiki-linux
 
   release:
     needs: [build-ext-windows, build-ext-macos, build-ext-ubuntu]
@@ -83,7 +94,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: txiki-build
-          pattern: txiki-*
+          pattern: txiki-dist-*
           merge-multiple: true
 
       - uses: ncipollo/release-action@v1
