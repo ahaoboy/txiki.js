@@ -4,9 +4,12 @@ on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+  pull_request:
+    branches:
+      - master
 
 jobs:
-  build-windows:
+  build-windows-x86_64:
     runs-on: windows-latest
     timeout-minutes: 60
 
@@ -28,17 +31,16 @@ jobs:
           pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-curl libcurl openssl-devel libcurl-devel autoconf texinfo mingw-w64-x86_64-libtool --noconfirm
           make
 
-          mkdir ./txiki-windows-x86
+          mkdir ./txiki-windows-x86_64
           cp ./build/tjs.exe ./txiki-windows-x86/tjs.exe
-          cp ./build/libtjs.a ./txiki-windows-x86/libtjs.a
-          cd ./txiki-windows-x86
-          ldd ./tjs.exe | grep '=>' | awk '{print $3}' | xargs -I '{}' cp -v '{}' .
+          cd ./txiki-windows-x86_64
+          ldd ./tjs.exe | grep -v '=> /c/Windows/.*' | awk '{print $3}' | xargs -I '{}' cp -v '{}' .
 
-      - name: Upload windows Artifact
+      - name: Upload windows x86_64 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: txiki-windows-x86
-          path: ./txiki-windows-x86
+          name: txiki-windows-x86_64
+          path: ./txiki-windows-x86_64
 
   build-macos-arm64:
     runs-on: macos-14
@@ -52,8 +54,7 @@ jobs:
           make
 
           mkdir ./txiki-macos-arm64
-          cp ./build/tjs ./txiki-macos-arm64/tjs
-          cp ./build/libtjs.a ./txiki-macos-arm64/libtjs.a
+          cp build/tjs ./txiki-macos-arm64/tjs
 
       - name: Upload macos arm64 Artifact
         uses: actions/upload-artifact@v4
@@ -73,8 +74,7 @@ jobs:
           make
 
           mkdir ./txiki-macos-x86
-          cp ./build/tjs ./txiki-macos-x86/tjs
-          cp ./build/libtjs.a ./txiki-macos-x86/libtjs.a
+          cp build/tjs ./txiki-macos-x86/tjs
 
       - name: Upload macos x86 Artifact
         uses: actions/upload-artifact@v4
@@ -83,12 +83,16 @@ jobs:
           path: ./txiki-macos-x86
 
   release:
-    needs: [build-windows, build-macos-x86, build-macos-arm64]
+    needs: [build-windows-x86_64, build-macos-x86, build-macos-arm64]
     name: release
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -100,6 +104,7 @@ jobs:
           cd ./dist
           for dir in */; do zip -r "${dir%/}.zip" "$dir"; done
 
-      - uses: ncipollo/release-action@v1
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          artifacts: "dist/*.zip"
+          files: "dist/*.zip"
